@@ -20,7 +20,8 @@ VIEWPORT_MARGIN = 40
 RIGHT_MARGIN = 150
 
 #NOT SURE ABOUT THE CLASSES BELOW? SINCE SOME DOCUMENTATION REQUIRE IT, SOME DONT?
-"""class Player(arcade.Sprite):
+
+class Player(arcade.Sprite):
     def update(self):
         self.center_x += self.change_x
         #change + center = assigned to center
@@ -37,6 +38,7 @@ RIGHT_MARGIN = 150
         elif self.top > SCREEN_HEIGHT -1:
             self.top = SCREEN_HEIGHT - 1
 
+"""
 class Enemy(arcade.Sprite):
     def update(self):
         self.center_x += self.change_x
@@ -67,14 +69,17 @@ class MyGame(arcade.Window):
         self.enemy_list = None
         self.wall_list = None
         self.bomb_list = None
+        self.block_list = None
+        self.flag_list = None
+        self.coin_list = None
         
         #Set up the player info
         self.player_sprite = None
         self.physics_engine = None
         #unsure
-        self.view_left = 0
+        #self.view_left = 0
         #unsure
-        self.view_bottom = 0
+        #self.view_bottom = 0
         self.game_over = True
 
         # If you have sprite lists, you should create them here,
@@ -87,71 +92,111 @@ class MyGame(arcade.Window):
         self.enemy_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
         self.bomb_list = arcade.SpriteList()
+        self.block_list = arcade.SpriteList()
+        self.flag_list = arcade.SpriteList()
+        self.coin_list = arcade.SpriteList()
 
         #Set up a score
         self.score = 0
 
         #Draw the walls  (using looping)
+        for x in range(0, SCREEN_WIDTH, SPRITE_SIZE):
+            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", SPRITE_SCALING)
+
+            wall.bottom = 0
+            wall.left = x
+            self.wall_list.append(wall)
         #range(start, end, multiples)
 
-        #Draw multiple blocks in the air
-        for x in range(SPRITE_SIZE, SCREEN_WIDTH, SPRITE_SIZE * 7):
-            wall = arcade.Sprite("images/block.png", SPRITE_SCALING)
+        #floating platforms
+        for x in range(SPRITE_SIZE * 3, SPRITE_SIZE * 9, SPRITE_SIZE):
+            wall = arcade.Sprite(":resources:images/tiles/grassMid.png", SPRITE_SCALING)
 
-            wall.bottom = SPRITE_SIZE*3
+            wall.bottom = SPRITE_SIZE * 3
             wall.left = x
             self.wall_list.append(wall)
 
-        for x in range(SPRITE_SIZE, SCREEN_WIDTH, SPRITE_SIZE * 6):
-            wall = arcade.Sprite("images/block.png", SPRITE_SCALING)
+        #floating blocks
+        block = arcade.Sprite("images/block.png", 0.15)
 
-            wall.bottom = SPRITE_SIZE*5
-            wall.left = x
-            self.wall_list.append(wall)
+        block.bottom = SPRITE_SIZE*5
+        block.left = SPRITE_SIZE*9
+        self.block_list.append(block)
 
-        for x in range(SPRITE_SIZE, SCREEN_WIDTH, SPRITE_SIZE * 10):
-            wall = arcade.Sprite("images/block.png", SPRITE_SCALING)
+        #Draw multiple blocks
+        block = arcade.Sprite("images/block.png", 0.15)
 
-            wall.bottom = SPRITE_SIZE*7
-            wall.left = x
-            self.wall_list.append(wall)
+        block.bottom = SPRITE_SIZE*6
+        block.left = SPRITE_SIZE*4
+        self.block_list.append(block)
+
+        block = arcade.Sprite("images/block.png", 0.15)
+
+        block.bottom = SPRITE_SIZE*4
+        block.left = SPRITE_SIZE*1
+        self.block_list.append(block)
+
 
         #Set up the player
-        self.player_sprite = arcade.Sprite("images/soldier.png", SPRITE_SCALING)
+        self.player_sprite = arcade.Sprite("images/soldier.png", 0.2)
         self.player_list.append(self.player_sprite)
         self.player_sprite.center_x = 64
-        self.player_sprite.center_y = 270
+        self.player_sprite.center_y = 100
         
-        #Set up the enemies
-        enemy = arcade.Sprite("images/tank.png", SPRITE_SCALING*3)
+        #set up the enemy
+        enemy = arcade.Sprite("images/tank.png", 0.1)
 
-        enemy.bottom = 0
-        enemy.left = SPRITE_SIZE * 5
-
-        """
-        # Set enemy initial speed
+        enemy.bottom = SPRITE_SIZE
+        enemy.left = SPRITE_SIZE * 3
         enemy.change_x = 2
         self.enemy_list.append(enemy)
-        """
+        
 
-        """
-        # Make boundaries that the enemies can't go through
+        # -- Draw a enemy on the platform
+        enemy = arcade.Sprite("images/tank.png", 0.1)
+
+        enemy.bottom = SPRITE_SIZE * 4
+        enemy.left = SPRITE_SIZE * 7
+        enemy.change_x = 2
+        self.enemy_list.append(enemy)
+
+        # Set boundaries on the left/right the enemy can't cross
         enemy.boundary_right = SPRITE_SIZE * 8
-        enemy.boundary_left = SPRITE_SIZE * 3
+        enemy.boundary_left = SPRITE_SIZE * 5
         enemy.change_x = 2
         self.enemy_list.append(enemy)
-        """
 
         # Draw bombs on the flying blocks
-        bomb = arcade.Sprite("images/bomb.png", SPRITE_SCALING)
+        bomb = arcade.Sprite("images/bomb.png", 0.1)
+        bomb.bottom = 250
+        bomb.left = SPRITE_SIZE * 5
+        self.bomb_list.append(bomb)
 
-        bomb.bottom = SPRITE_SIZE * 4
-        bomb.left = SPRITE_SIZE * 6
+        bomb = arcade.Sprite("images/bomb.png", 0.1)
+        bomb.bottom = 365
+        bomb.left = SPRITE_SIZE * 9
+        self.bomb_list.append(bomb)
 
-        bomb = arcade.Sprite("images/bomb.png", SPRITE_SCALING)
+        flag = arcade.Sprite("images/flag.png", 0.1)
+        flag.bottom = SPRITE_SIZE
+        flag.left = 750
+        self.flag_list.append(flag)
 
-        bomb.bottom = SPRITE_SIZE * 6
-        bomb.left = SPRITE_SIZE * 6
+        coin = arcade.Sprite("images/coin.png", 0.1)
+        coin.bottom = SPRITE_SIZE*8
+        coin.left = 270
+        self.coin_list.append(coin)
+
+        coin = arcade.Sprite("images/coin.png", 0.1)
+        coin.bottom = SPRITE_SIZE*6
+        coin.left = 70
+        self.coin_list.append(coin)
+
+        coin = arcade.Sprite("images/coin.png", 0.1)
+        coin.bottom = SPRITE_SIZE
+        coin.left = SPRITE_SIZE*9
+        self.coin_list.append(coin)
+        
 
         # Set up the physics behind the game
         self.physics_engine = arcade.PhysicsEnginePlatformer(self.player_sprite,
@@ -176,6 +221,9 @@ class MyGame(arcade.Window):
         self.wall_list.draw()
         self.enemy_list.draw()
         self.bomb_list.draw()
+        self.block_list.draw()
+        self.flag_list.draw()
+        self.coin_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -183,8 +231,7 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-
-        """
+        
         if not self.game_over:
             # Move the enemies
             self.enemy_list.update()
@@ -208,7 +255,6 @@ class MyGame(arcade.Window):
             if len(arcade.check_for_collision_with_list(self.player_sprite, self.enemy_list)) > 0:
                 #len more than 0 means there is more than 0 collision between player and enemy
                 self.game_over = True
-        """
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.UP:
@@ -224,21 +270,22 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = 0
         #Dont need to specify up because theres gravity programmed alr
 
+    """
     def on_mouse_motion(self, x, y, delta_x, delta_y):
-        """
+        
         Called whenever the mouse moves.
-        """
+        
 
     def on_mouse_press(self, x, y, button, key_modifiers):
-        """
+        
         Called when the user presses a mouse button.
-        """
+        
 
     def on_mouse_release(self, x, y, button, key_modifiers):
-        """
+        
         Called when a user releases a mouse button.
-        """
-
+    
+    """
 
 def main():
     """ Main method """
