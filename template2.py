@@ -1,5 +1,6 @@
 import arcade
 import os
+import math
 
 SPRITE_SCALING = 0.5
 SPRITE_NATIVE_SIZE = 128
@@ -13,6 +14,7 @@ SCREEN_TITLE = "Games"
 MOVEMENT_SPEED = 5
 JUMP_SPEED = 15
 GRAVITY = 0.5
+BULLET_SPEED = 5
 
 # How many pixels to keep as a minimum margin between the character
 # and the edge of the screen.
@@ -37,13 +39,6 @@ class Player(arcade.Sprite):
             self.bottom = 0
         elif self.top > SCREEN_HEIGHT -1:
             self.top = SCREEN_HEIGHT - 1
-
-"""
-class Enemy(arcade.Sprite):
-    def update(self):
-        self.center_x += self.change_x
-        self.center_y += self.change_y
-"""
 
 class MyGame(arcade.Window):
     """
@@ -71,6 +66,7 @@ class MyGame(arcade.Window):
         self.bomb_list = None
         self.flag_list = None
         self.coin_list = None
+        self.bullet_list = None
         
         #Set up the player info
         self.player_sprite = None
@@ -80,6 +76,12 @@ class MyGame(arcade.Window):
         #unsure
         #self.view_bottom = 0
         self.game_over = False
+        self.score = 0
+        self.score_text = None
+
+        #load sounds
+        self.gun_sound = arcade.sound.load_sound(":resources:sounds/laser1.wav")
+        self.hit_sound = arcade.sound.load_sound(":resources:sounds/phaseJump1.wav")
 
         # If you have sprite lists, you should create them here,
         
@@ -93,6 +95,7 @@ class MyGame(arcade.Window):
         self.bomb_list = arcade.SpriteList()
         self.flag_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
+        self.bullet_list = arcade.SpriteList()
 
         #Set up a score
         self.score = 0
@@ -127,14 +130,6 @@ class MyGame(arcade.Window):
         wall.bottom = SPRITE_SIZE*6
         wall.left = SPRITE_SIZE*4
         self.wall_list.append(wall)
-
-        """
-        wall = arcade.Sprite("images/block.png", 0.15)
-
-        wall.bottom = SPRITE_SIZE*4
-        wall.left = SPRITE_SIZE*1
-        self.wall_list.append(wall)
-        """
 
         wall = arcade.Sprite("images/block.png", 0.15)
 
@@ -184,12 +179,13 @@ class MyGame(arcade.Window):
         bomb.bottom = 250
         bomb.left = SPRITE_SIZE * 5
         self.bomb_list.append(bomb)
-        """
+        
 
         bomb = arcade.Sprite("images/bomb.png", 0.1)
         bomb.bottom = 365
         bomb.left = SPRITE_SIZE * 9
         self.bomb_list.append(bomb)
+        """
 
         flag = arcade.Sprite("images/flag.png", 0.1)
         flag.bottom = SPRITE_SIZE
@@ -219,7 +215,7 @@ class MyGame(arcade.Window):
         
 
         #Set background layout
-        arcade.set_background_color(arcade.color.WHITE)
+        arcade.set_background_color(arcade.color.BLACK)
 
     def on_draw(self):
         """
@@ -237,6 +233,12 @@ class MyGame(arcade.Window):
         self.bomb_list.draw()
         self.flag_list.draw()
         self.coin_list.draw()
+        self.bullet_list.draw()
+
+        # Put the text on the screen.
+        output = f"Score: {self.score}"
+        #draw_text(the text, start x, start y, colour, font)
+        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
 
     def on_update(self, delta_time):
         """
@@ -269,6 +271,34 @@ class MyGame(arcade.Window):
                 #len more than 0 means there is more than 0 collision between player and enemy
                 self.game_over = True
 
+            # Loop through each bullet
+        
+        self.bullet_list.update()
+        for bullet in self.bullet_list:
+
+            # Check this bullet to see if it hit a enemy
+            hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
+
+            # If it did, get rid of the bullet
+            if len(hit_list) > 0:
+                bullet.remove_from_sprite_lists()
+
+            # For every enemy we hit, add to the score and remove the enemy
+            for enemy in hit_list:
+                enemy.remove_from_sprite_lists()
+                self.score += 5
+
+            # If the bullet flies off-screen, remove it.
+            if bullet.bottom > SCREEN_WIDTH or bullet.top < 0 or bullet.right < 0 or bullet.left > SCREEN_WIDTH:
+                bullet.remove_from_sprite_lists()
+
+            #to make the bullet rebound walls
+            if len(arcade.check_for_collision_with_list(bullet, self.wall_list)) > 0:
+                    #len more than 0 means there is more than 0 collision between the enemy and wall
+                    bullet.change_x *= -1
+                    bullet.change_y *= -1
+            
+
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.UP:
             if self.physics_engine.can_jump():
@@ -282,22 +312,44 @@ class MyGame(arcade.Window):
         if key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
         #Dont need to specify up because theres gravity programmed alr
-
+        
     """
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         
         Called whenever the mouse moves.
-        
-
+    """
     def on_mouse_press(self, x, y, button, key_modifiers):
-        
+        """
         Called when the user presses a mouse button.
-        
+        """
+        bullet = arcade.Sprite(":resources:images/space_shooter/laserRed01.png", 0.3)
 
+        #Position the bullet at the player's current location
+        start_x = self.player_sprite.center_x
+        start_y = self.player_sprite.center_y
+        bullet.center_x = start_x
+        bullet.center_y = start_y
+
+        dest_x = x
+        dest_y = y
+
+        diff_x = dest_x - start_x
+        diff_y = dest_y - start_y
+        angle = math.atan2(diff_y, diff_x)
+        #atan is arc tangent
+        #y_diff is the y coordinate, x_diff is the x coordinate
+        bullet.angle = math.degrees(angle)
+
+        # Taking into account the angle, calculate our change_x and change_y. Velocity is how fast the bullet travels.
+        bullet.change_x = math.cos(angle) * BULLET_SPEED
+        bullet.change_y = math.sin(angle) * BULLET_SPEED
+
+        self.bullet_list.append(bullet)
+        
+    """
     def on_mouse_release(self, x, y, button, key_modifiers):
         
         Called when a user releases a mouse button.
-    
     """
 
 def main():
