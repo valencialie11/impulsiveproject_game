@@ -12,7 +12,7 @@ SCREEN_TITLE = "Games"
 
 # Physics
 MOVEMENT_SPEED = 5
-JUMP_SPEED = 15
+JUMP_SPEED = 12
 GRAVITY = 0.5
 BULLET_SPEED = 5
 
@@ -146,10 +146,10 @@ class MyGame(arcade.Window):
 
         #Set up the player
         self.player_sprite = arcade.Sprite("images/soldier.png", 0.2)
-        self.player_list.append(self.player_sprite)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 100
-        
+        self.player_list.append(self.player_sprite)
+
         #set up the enemy at the ground
         enemy = arcade.Sprite("images/tank.png", 0.1)
 
@@ -174,18 +174,15 @@ class MyGame(arcade.Window):
         self.enemy_list.append(enemy)
 
         # Draw bombs on the flying blocks
-        """
         bomb = arcade.Sprite("images/bomb.png", 0.1)
         bomb.bottom = 250
         bomb.left = SPRITE_SIZE * 5
         self.bomb_list.append(bomb)
         
-
         bomb = arcade.Sprite("images/bomb.png", 0.1)
         bomb.bottom = 365
         bomb.left = SPRITE_SIZE * 9
         self.bomb_list.append(bomb)
-        """
 
         flag = arcade.Sprite("images/flag.png", 0.1)
         flag.bottom = SPRITE_SIZE
@@ -215,7 +212,7 @@ class MyGame(arcade.Window):
         
 
         #Set background layout
-        arcade.set_background_color(arcade.color.BLACK)
+        arcade.set_background_color(arcade.color.WARM_BLACK)
 
     def on_draw(self):
         """
@@ -294,10 +291,15 @@ class MyGame(arcade.Window):
 
             #to make the bullet rebound walls
             if len(arcade.check_for_collision_with_list(bullet, self.wall_list)) > 0:
-                    #len more than 0 means there is more than 0 collision between the enemy and wall
-                    bullet.change_x *= -1
-                    bullet.change_y *= -1
-            
+                bullet.remove_from_sprite_lists()
+        
+        self.player_sprite.update()
+        coin_hit = arcade.check_for_collision_with_list(self.player_sprite, self.coin_list)
+        for coin in self.coin_list:
+            if len(coin_hit) > 0:
+                for coin in coin_hit:
+                    self.score += 1 
+                    coin.remove_from_sprite_lists()
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.UP:
@@ -342,8 +344,9 @@ class MyGame(arcade.Window):
 
         # Taking into account the angle, calculate our change_x and change_y. Velocity is how fast the bullet travels.
         bullet.change_x = math.cos(angle) * BULLET_SPEED
+        """
         bullet.change_y = math.sin(angle) * BULLET_SPEED
-
+        """
         self.bullet_list.append(bullet)
         
     """
