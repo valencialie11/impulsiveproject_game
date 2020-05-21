@@ -21,6 +21,11 @@ BULLET_SPEED = 5
 VIEWPORT_MARGIN = 40
 RIGHT_MARGIN = 150
 
+# These numbers represent "states" that the game can be in.
+INSTRUCTIONS_PAGE_1 = 1
+GAME_RUNNING = 2
+GAME_OVER = 3
+
 #NOT SURE ABOUT THE CLASSES BELOW? SINCE SOME DOCUMENTATION REQUIRE IT, SOME DONT?
 
 class Player(arcade.Sprite):
@@ -78,6 +83,12 @@ class MyGame(arcade.Window):
         self.game_over = False
         self.score = 0
         self.score_text = None
+
+        """
+        self.instructions = []
+        texture = arcade.load_texture("images/instructions_0.png")
+        self.instructions.append(texture)
+        """
 
         #load sounds
         self.gun_sound = arcade.sound.load_sound(":resources:sounds/laser1.wav")
@@ -219,14 +230,31 @@ class MyGame(arcade.Window):
         #Set background layout
         arcade.set_background_color(arcade.color.WARM_BLACK)
 
-    def on_draw(self):
+    """
+    def draw_instructions_page(self, page_number):
+        page_texture = self.instructions[page_number]
+        arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
+                                      page_texture.width,
+                                      page_texture.height, page_texture, 0)
+    """
+    
+    def draw_game_over(self):
+        output = "Game Over"
+        arcade.draw_text(output, 240, 400, arcade.color.WHITE, 54)
+
+        output = f"Score:{self.score}"
+        arcade.draw_text(output, 240, 350, arcade.color.WHITE, 50)
+
+        output = "Click to restart"
+        arcade.draw_text(output, 310, 300, arcade.color.WHITE, 24)
+
+    def draw_game(self):
         """
         Render the screen.
         """
 
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
-        arcade.start_render()
 
         # Call draw() on all your sprite lists below
         self.player_list.draw()
@@ -241,6 +269,16 @@ class MyGame(arcade.Window):
         output = f"Score: {self.score}"
         #draw_text(the text, start x, start y, colour, font)
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        if self.current_state == GAME_RUNNING:
+            self.draw_game()
+
+        else:
+            self.draw_game()
+            self.draw_game_over()
 
     def on_update(self, delta_time):
         """
@@ -317,9 +355,6 @@ class MyGame(arcade.Window):
         if len(flag_hit)>0:
             self.game_over = True
             self.player_sprite.remove_from_sprite_lists()
-            output2 = f"Game Over! Score: {self.score}"
-            #draw_text(the text, start x, start y, colour, font)
-            arcade.draw_text(output2, 50 , 50, arcade.color.WHITE, 14)
                 
 
     def on_key_press(self, key, key_modifiers):
@@ -369,6 +404,11 @@ class MyGame(arcade.Window):
         bullet.change_y = math.sin(angle) * BULLET_SPEED
         """
         self.bullet_list.append(bullet)
+
+        if self.current_state == GAME_OVER:
+            # Restart the game.
+            self.setup()
+            self.current_state = GAME_RUNNING
         
     """
     def on_mouse_release(self, x, y, button, key_modifiers):
