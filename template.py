@@ -143,6 +143,11 @@ class MyGame(arcade.Window):
         wall.left = SPRITE_SIZE*6
         self.wall_list.append(wall)
 
+        wall = arcade.Sprite("images/block.png", 0.15)
+
+        wall.bottom = SPRITE_SIZE*4
+        wall.left = SPRITE_SIZE*2
+        self.wall_list.append(wall)
 
         #Set up the player
         self.player_sprite = arcade.Sprite("images/soldier.png", 0.2)
@@ -169,7 +174,7 @@ class MyGame(arcade.Window):
 
         # Set boundaries on the left/right the enemy can't cross
         enemy.boundary_right = SPRITE_SIZE * 9
-        enemy.boundary_left = SPRITE_SIZE * 5
+        enemy.boundary_left = SPRITE_SIZE * 6
         enemy.change_x = 2
         self.enemy_list.append(enemy)
 
@@ -300,6 +305,22 @@ class MyGame(arcade.Window):
                 for coin in coin_hit:
                     self.score += 1 
                     coin.remove_from_sprite_lists()
+
+        bomb_hit = arcade.check_for_collision_with_list(self.player_sprite, self.bomb_list)
+        for bomb in self.bomb_list:
+            if len(bomb_hit)>0:
+                for bomb in bomb_hit:
+                    self.score -= 5
+                    bomb.remove_from_sprite_lists()
+        
+        flag_hit = arcade.check_for_collision_with_list(self.player_sprite, self.flag_list)
+        if len(flag_hit)>0:
+            self.game_over = True
+            self.player_sprite.remove_from_sprite_lists()
+            output2 = f"Game Over! Score: {self.score}"
+            #draw_text(the text, start x, start y, colour, font)
+            arcade.draw_text(output2, 50 , 50, arcade.color.WHITE, 14)
+                
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.UP:
