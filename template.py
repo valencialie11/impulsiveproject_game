@@ -23,6 +23,7 @@ RIGHT_MARGIN = 150
 
 #NOT SURE ABOUT THE CLASSES BELOW? SINCE SOME DOCUMENTATION REQUIRE IT, SOME DONT?
 
+"""
 class Player(arcade.Sprite):
     def update(self):
         self.center_x += self.change_x
@@ -40,6 +41,7 @@ class Player(arcade.Sprite):
         elif self.top > SCREEN_HEIGHT -1:
             self.top = SCREEN_HEIGHT - 1
 
+"""
 class MyGame(arcade.Window):
     """
     Main application class.
@@ -208,7 +210,6 @@ class MyGame(arcade.Window):
         coin.bottom = SPRITE_SIZE
         coin.left = SPRITE_SIZE*9
         self.coin_list.append(coin)
-        
 
         # Set up the physics behind the game
         self.physics_engine = arcade.PhysicsEnginePlatformer(self.player_sprite,
@@ -267,8 +268,7 @@ class MyGame(arcade.Window):
             self.game_over = True
             self.player_sprite.remove_from_sprite_lists()
 
-            # Loop through each bullet
-        
+        # Loop through each bullet
         self.bullet_list.update()
         for bullet in self.bullet_list:
 
@@ -336,9 +336,9 @@ class MyGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
-        bullet = arcade.Sprite(":resources:images/space_shooter/laserRed01.png", 0.3)
 
         #Position the bullet at the player's current location
+        bullet = arcade.Sprite(":resources:images/space_shooter/laserRed01.png", 0.3)
         start_x = self.player_sprite.center_x
         start_y = self.player_sprite.center_y
         bullet.center_x = start_x
@@ -359,6 +359,10 @@ class MyGame(arcade.Window):
         """
         bullet.change_y = math.sin(angle) * BULLET_SPEED
         """
+
+        if self.game_over == True:
+            bullet.remove_from_sprite_lists()
+
         self.bullet_list.append(bullet)
 
 def main():
